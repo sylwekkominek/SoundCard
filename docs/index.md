@@ -75,15 +75,12 @@ A multiplexer is used to select the audio source. The resampler block processes 
 
 The clock generator provides low-jitter square-wave signals for both the resampler and the DAC. Because the DAC outputs a current signal, a current-to-voltage converter is used to transform it into a voltage output. A headphone amplifier is included to provide sufficient current drive for headphones.
 
-<div style="text-align:center">
-  <img width="3076" height="895" alt="Figure 1a" src="https://github.com/user-attachments/assets/3a35f4d9-fc4e-45ce-8551-d8f3695800dd" />
-  <p><em>Figure 1a: Block diagram of the designed sound card</em></p>
-</div>
+![Figure 1a](Figure 1a.png)
+*Figure 1a: Block diagram of the designed sound card*
 
-<div style="text-align:center">
-  <img width="3061" height="834" alt="Figure 2a" src="https://github.com/user-attachments/assets/82da70c9-e906-486a-905c-f4b7050c0559" />
-  <p><em>Figure 2a: Block diagram of the designed sound card</em></p>
-</div>
+![Figure 1b](Figure 1b.png)
+*Figure 1a: Block diagram of the designed sound card*
+
 
 Before selecting the integrated circuits, I reviewed several articles on the construction of:
 
@@ -112,10 +109,8 @@ The PDEN pin, when connected to ground, is used for measuring the IC’s impedan
 
 Resistors R1 and R2 are used to suppress interference. The line ADUM4160_PIN can be used to enable or disable the device’s visibility to the computer.
 
-<div style="text-align:center">
-  <img width="1229" height="364" alt="Figure 3" src="https://github.com/user-attachments/assets/1277dad4-2447-4b79-8d0f-c42fb3041d17" />
-  <p><em>Figure 2 shows the schematic of the ADUM4160 IC used as a USB isolator.</em></p>
-</div>
+![Figure 2](Figure 2.png)
+*Figure 2 shows the schematic of the ADUM4160 IC used as a USB isolator.*
 
 ---
 ## USB/I2S converter
@@ -147,15 +142,12 @@ The IC powers up and operates automatically, so in this work the SPI bus was not
 
 The analog section, which allows direct listening while operating in USB/I2S mode, does not require additional power, so pins 26–29 are not connected. The lines PCM2707_LRCK, PCM2707_BCK, and PCM2707_SDOUT are part of the I2S bus. The SYSTEM CLOCK signal is not routed externally because the card has its own clock generator.
 
-<div style="text-align:center">
-  <img width="742" height="514" alt="Figure 3" src="https://github.com/user-attachments/assets/1943f89f-7add-4126-95c8-d5f7ea113afe" />
-  <p><em>Figure 3: USB/I2S converter schematic.</em></p>
-</div>
+![Figure 3](Figure 3.png)
+*Figure 3: USB/I2S converter schematic.*
 
-<div style="text-align:center">
-  <img width="381" height="323" alt="Figure 4" src="https://github.com/user-attachments/assets/692d06e7-96ec-4d70-bbc5-aec1e88a15bc" />
-  <p><em>Figure 4: Host detection circuit schematic.</em></p>
-</div>
+![Figure 4](Figure 4.png)
+*Figure 4: Host detection circuit schematic.*
+
 
 ---
 ## SPDIF/I2S converter
@@ -189,10 +181,8 @@ Upon power-up, the IC is in low-power mode. To activate it, the RUN bit in regis
 
 The default I2S bus format is left-justified, whereas the rest of the components on the card operate in standard I2S mode. This must be adjusted by setting the SODEL and SOLRPOL bits in register 0x05.
 
-<div style="text-align:center">
-  <img width="950" height="541" alt="Figure 5" src="https://github.com/user-attachments/assets/b62cf038-cc1e-4ac7-ae50-a35500f69150" />
-  <p><em>Figure 5: SPDIF/I2S converter schematic.</em></p>
-</div>
+![Figure 5](Figure 5.png)
+*Figure 5: SPDIF/I2S converter schematic.*
 
 ---
 ## Multiplexer
@@ -205,10 +195,8 @@ The control signals are: PCM_SDOUT_EN, PCM_LRCK_EN, PCM_BCK_EN, and CS_SDOUT_EN,
 
 The multiplexer operates as follows: to select the I2S interface from the PCM2707 IC, the control lines PCM_SDOUT_EN, PCM_LRCK_EN, and PCM_BCK_EN must be set low, while the lines CS_SDOUT_EN, CS_LRCK_EN, and CS_BCK_EN must be set high.
 
-<div style="text-align:center">
-  <img width="1173" height="348" alt="Figure 6" src="https://github.com/user-attachments/assets/c0dedcb5-aed7-405c-a78d-b3cd16eff568" />
-  <p><em>Figure 6: Multiplexer schematic.</em></p>
-</div>
+![Figure 6](Figure 6.png)
+*Figure 6: Multiplexer schematic.*
 
 ---
 ## Generator
@@ -222,16 +210,12 @@ The IC has three programmable outputs: SCK1, SCK2, and SCK3. The frequency on th
 
 The IC is controlled via the SPI interface (lines PLL1708_CS, MOSI2, MISO2).
 
-<div style="text-align:center">
-  <img width="798" height="444" alt="Figure 7" src="https://github.com/user-attachments/assets/8f5323c4-e386-4407-bfe0-aa5b0b5fe743" />
-  <p><em>Figure 7: Audio clock generator schematic.</em></p>
-</div>
+![Figure 7](Figure 7.png)
+*Figure 7: Audio clock generator schematic.*
 
-<div style="text-align:center">
-  <img width="1163" height="92" alt="Figure 8a" src="https://github.com/user-attachments/assets/39c90ec8-31f6-4e72-95f9-a6c30112bc88" />
-  <img width="1163" height="83" alt="Figure 8b" src="https://github.com/user-attachments/assets/182c1801-ca94-4d4c-8537-7bd31282b5f1" />
-  <p><em>Figure 8: Configuration registers of the PLL1708 IC.</em></p>
-</div>
+![Figure 8a](Figure 8a.png)
+![Figure 8b](Figure 8b.png)
+*Figure 8: Configuration registers of the PLL1708 IC.*
 
 The CE6–CE1 bits are responsible for enabling the corresponding outputs. For the purposes of this sound card, only the SCKO2 and SCKO3 outputs are used. The remaining outputs should be left disabled, as their pins act like antennas and can generate interference.
 
@@ -240,21 +224,14 @@ Table 1 shows the output frequency fs depending on the settings of the FS[1:0] a
 
 The signals on the SCKO2 and SCKO3 outputs are 256 fs and 384 fs, respectively.
 
+![Table 1](Table 1.png)
+*Table 1: Output signal settings depending on the FS[1:0] and SR[1:0] bits.*
 
-<div style="text-align:center">
-  <img width="800" height="127" alt="Table 1" src="https://github.com/user-attachments/assets/ae7f68b9-466d-410c-b991-05bfc407acb9" />
-  <p><em>Table 1: Output signal settings depending on the FS[1:0] and SR[1:0] bits.</em></p>
-</div>
+![Table 2](Table 2.png)
+*Table 2: SCKO1 output signal depending on the CFGR bit and CSEL line settings.*
 
-<div style="text-align:center">
-  <img width="400" height="134" alt="Table 2" src="https://github.com/user-attachments/assets/a7328efd-1067-4888-9c99-44508cbe59a4" />
-  <p><em>Table 2: SCKO1 output signal depending on the CFGR bit and CSEL line settings.</em></p>
-</div>
-
-<div style="text-align:center">
-  <img width="400" height="280" alt="Table 3" src="https://github.com/user-attachments/assets/f10d95fa-430a-4268-9981-078b9e5e6262" />
-  <p><em>Table 3: Clock signals on the SCKO2 and SCKO3 outputs.</em></p>
-</div>
+![Table 3](Table 3.png)
+*Table 3: Clock signals on the SCKO2 and SCKO3 outputs.*
 
 ---
 ## Resampler
@@ -266,17 +243,13 @@ The IC is controlled via the SPI bus (lines: MOSI2, MCLK2, and SRC4193_CS). The 
 
 Additionally, the IC has a very important feature that significantly improves audio quality: the RCKI signal does not need to be in phase with the input signals on the I2S bus, while the output signals on the I2S bus are synchronized with the RCKI clock. This functionality allows the use of a separate clock for the DAC and the resampler, improving overall timing and audio fidelity.
 
-<div style="text-align:center">
-  <img width="790" height="206" alt="Figure 8" src="https://github.com/user-attachments/assets/c7d9d1ba-6a53-4deb-9177-8347e7784eeb" />
-  <p><em>Figure 8: Resampler schematic.</em></p>
-</div>
+![Figure 9](Figure 9.png)
+Figure 9: Resampler schematic.*
 
 In Figure 9, the register map of the resampler is shown. Setting the PDN bit enables the operation of the resampler. Setting the TRACK bit causes the attenuation for the left channel to also apply to the right channel. Otherwise, both channels must be configured separately. The MUTE and BYPAS bits are available both via the SPI bus and through the pins—they perform the same functions. The MODE[2:0] bits determine the output signal speed and the operating mode (MASTER / SLAVE) of the I2S input and output ports. In the card design, the output port operates in MASTER mode, while the input port operates in SLAVE mode.
 
-<div style="text-align:center">
-  <img width="853" height="159" alt="Figure 9" src="https://github.com/user-attachments/assets/c5f9d01a-2229-4cc0-8170-dc42f42a6a88" />
-  <p><em>Figure 9: Register map of the SRC4193.</em></p>
-</div>
+![Figure 10](Figure 10.png)
+Figure 10: Register map of the SRC4193.
 
 <div style="text-align:center">
   <img width="150" height="77" alt="Table 4" src="https://github.com/user-attachments/assets/7f37d859-9efa-407e-bc79-79fe247253a0" />
