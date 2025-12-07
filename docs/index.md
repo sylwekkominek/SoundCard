@@ -1,6 +1,6 @@
 ***This master’s thesis was completed by Sylwester Kominek at Wrocław University of Technology in 2013 under the supervision of Prof. Janusz Janiczek.***
 
-It was translated into English in 2025, as there is still considerable interest in building personal DACs. Even after all these years, the main components used in the original design (PCM1792, SRC4193) are still available. Audio enthusiasts may find the information presented in this work useful.
+It was translated into English in 2025, as there is still considerable interest in building personal DACs. Even after all these years, the main components used in the original design (PCM1792, SRC4193, TPA6120) are still available. Audio enthusiasts may find the information presented in this work useful.
 
 This work is distributed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). Please include the author’s name, Sylwester Kominek (Wroclaw), if you use or modify this work (including text, analysis, and schematics).
 
@@ -76,9 +76,11 @@ A multiplexer is used to select the audio source. The resampler block processes 
 The clock generator provides low-jitter square-wave signals for both the resampler and the DAC. Because the DAC outputs a current signal, a current-to-voltage converter is used to transform it into a voltage output. A headphone amplifier is included to provide sufficient current drive for headphones.
 
 ![Figure 1a](Figure 1a.png)
+
 *Figure 1a: Block diagram of the designed sound card*
 
 ![Figure 1b](Figure 1b.png)
+
 *Figure 1a: Block diagram of the designed sound card*
 
 
@@ -110,6 +112,7 @@ The PDEN pin, when connected to ground, is used for measuring the IC’s impedan
 Resistors R1 and R2 are used to suppress interference. The line ADUM4160_PIN can be used to enable or disable the device’s visibility to the computer.
 
 ![Figure 2](Figure 2.png)
+
 *Figure 2 shows the schematic of the ADUM4160 IC used as a USB isolator.*
 
 ---
@@ -143,9 +146,11 @@ The IC powers up and operates automatically, so in this work the SPI bus was not
 The analog section, which allows direct listening while operating in USB/I2S mode, does not require additional power, so pins 26–29 are not connected. The lines PCM2707_LRCK, PCM2707_BCK, and PCM2707_SDOUT are part of the I2S bus. The SYSTEM CLOCK signal is not routed externally because the card has its own clock generator.
 
 ![Figure 3](Figure 3.png)
+
 *Figure 3: USB/I2S converter schematic.*
 
 ![Figure 4](Figure 4.png)
+
 *Figure 4: Host detection circuit schematic.*
 
 
@@ -182,6 +187,7 @@ Upon power-up, the IC is in low-power mode. To activate it, the RUN bit in regis
 The default I2S bus format is left-justified, whereas the rest of the components on the card operate in standard I2S mode. This must be adjusted by setting the SODEL and SOLRPOL bits in register 0x05.
 
 ![Figure 5](Figure 5.png)
+
 *Figure 5: SPDIF/I2S converter schematic.*
 
 ---
@@ -196,6 +202,7 @@ The control signals are: PCM_SDOUT_EN, PCM_LRCK_EN, PCM_BCK_EN, and CS_SDOUT_EN,
 The multiplexer operates as follows: to select the I2S interface from the PCM2707 IC, the control lines PCM_SDOUT_EN, PCM_LRCK_EN, and PCM_BCK_EN must be set low, while the lines CS_SDOUT_EN, CS_LRCK_EN, and CS_BCK_EN must be set high.
 
 ![Figure 6](Figure 6.png)
+
 *Figure 6: Multiplexer schematic.*
 
 ---
@@ -211,10 +218,12 @@ The IC has three programmable outputs: SCK1, SCK2, and SCK3. The frequency on th
 The IC is controlled via the SPI interface (lines PLL1708_CS, MOSI2, MISO2).
 
 ![Figure 7](Figure 7.png)
+
 *Figure 7: Audio clock generator schematic.*
 
 ![Figure 8a](Figure 8a.png)
 ![Figure 8b](Figure 8b.png)
+
 *Figure 8: Configuration registers of the PLL1708 IC.*
 
 The CE6–CE1 bits are responsible for enabling the corresponding outputs. For the purposes of this sound card, only the SCKO2 and SCKO3 outputs are used. The remaining outputs should be left disabled, as their pins act like antennas and can generate interference.
@@ -225,18 +234,21 @@ Table 1 shows the output frequency fs depending on the settings of the FS[1:0] a
 The signals on the SCKO2 and SCKO3 outputs are 256 fs and 384 fs, respectively.
 
 ![Table 1](Table 1.png)
+
 *Table 1: Output signal settings depending on the FS[1:0] and SR[1:0] bits.*
 
 ![Table 2](Table 2.png)
+
 *Table 2: SCKO1 output signal depending on the CFGR bit and CSEL line settings.*
 
 ![Table 3](Table 3.png)
+
 *Table 3: Clock signals on the SCKO2 and SCKO3 outputs.*
 
 ---
 ## Resampler
 
-Figure 8 shows the resampler schematic.
+Figure 9 shows the resampler schematic.
 For this purpose, the SRC4193 IC was used. The input signals SRC4193_SDIN, SRC4193_BCKI, and SRC4193_LRCKI come from the multiplexer, while the SRC4193_RCKI signal is provided by the clock generator. The output signals are SRC4193_BCKO, SRC4193_LRCKO, and SRC4193_SDOUT.
 
 The IC is controlled via the SPI bus (lines: MOSI2, MCLK2, and SRC4193_CS). The SRC4193_BYPAS line allows bypassing the resampler, passing the input samples directly to the output. The SRC4193_RATIO line informs an external circuit whether the input signal frequency is higher than the output signal frequency. The SRC4193_RDY line notifies the processor about the validity of the output samples.
@@ -244,17 +256,18 @@ The IC is controlled via the SPI bus (lines: MOSI2, MCLK2, and SRC4193_CS). The 
 Additionally, the IC has a very important feature that significantly improves audio quality: the RCKI signal does not need to be in phase with the input signals on the I2S bus, while the output signals on the I2S bus are synchronized with the RCKI clock. This functionality allows the use of a separate clock for the DAC and the resampler, improving overall timing and audio fidelity.
 
 ![Figure 9](Figure 9.png)
-Figure 9: Resampler schematic.*
 
-In Figure 9, the register map of the resampler is shown. Setting the PDN bit enables the operation of the resampler. Setting the TRACK bit causes the attenuation for the left channel to also apply to the right channel. Otherwise, both channels must be configured separately. The MUTE and BYPAS bits are available both via the SPI bus and through the pins—they perform the same functions. The MODE[2:0] bits determine the output signal speed and the operating mode (MASTER / SLAVE) of the I2S input and output ports. In the card design, the output port operates in MASTER mode, while the input port operates in SLAVE mode.
+*Figure 9: Resampler schematic.*
+
+In Figure 10, the register map of the resampler is shown. Setting the PDN bit enables the operation of the resampler. Setting the TRACK bit causes the attenuation for the left channel to also apply to the right channel. Otherwise, both channels must be configured separately. The MUTE and BYPAS bits are available both via the SPI bus and through the pins—they perform the same functions. The MODE[2:0] bits determine the output signal speed and the operating mode (MASTER / SLAVE) of the I2S input and output ports. In the card design, the output port operates in MASTER mode, while the input port operates in SLAVE mode.
 
 ![Figure 10](Figure 10.png)
-Figure 10: Register map of the SRC4193.
 
-<div style="text-align:center">
-  <img width="150" height="77" alt="Table 4" src="https://github.com/user-attachments/assets/7f37d859-9efa-407e-bc79-79fe247253a0" />
-  <p><em>Table 4: Resampler speed modes depending on the RCKI signal.</em></p>
-</div>
+*Figure 10: Register map of the SRC4193.*
+
+![Table 4](Table 4.png)
+
+*Table 4: Resampler speed modes depending on the RCKI signal.*
 
 Table 4 presents the output signal speed modes (fs) on the I2S bus depending on the RCKI signal frequency. As mentioned earlier, the speed is selected using the MODE[2:0] bits. The DFLT bit determines whether the resampled signal is passed through the filters. Setting the LGRP bit reduces the delay between the input and output of the device from 64 to 32 samples. The OWL[1:0] bits define the output word length of the SRC4193—for example, it is possible to upsample a 16-bit signal to 24 bits.
 
@@ -265,20 +278,18 @@ The SRC4193 requires specifying the input data format, which is done using the I
 It should be noted that a 24-bit I2S bus, unlike Right-Justified format, does not need to know the exact size of the input data—for example, the data may be 5, 16, or 24 bits.
 
 
-<div style="text-align:center">
-  <img width="400" height="120" alt="Table 5" src="https://github.com/user-attachments/assets/1d66a463-58cb-4239-bfa4-8e04fd8a9eef" />
-  <p><em>Table 5: Output data length of the SRC4193 depending on the OWL[1:0] bit settings.</em></p>
-</div>
+![Table 5](Table 5.png)
 
-<div style="text-align:center">
-  <img width="400" height="120" alt="Table 6" src="https://github.com/user-attachments/assets/2e8db343-7d71-4f3d-ae92-665da5d45523" />
-  <p><em>Table 6: Output data format of the SRC4193 depending on the OFMT[1:0] bit settings.</em></p>
-</div>
+*Table 5: Output data length of the SRC4193 depending on the OWL[1:0] bit settings.*
 
-<div style="text-align:center">
-  <img width="500" height="180" alt="Table 7" src="https://github.com/user-attachments/assets/373f97b0-74c9-4528-a652-172f9df7e39a" />
-  <p><em>Table 7: Input data format of the SRC4193 depending on the IFMT[2:0] bit settings.</em></p>
-</div>
+![Table 6](Table 6.png)
+
+*Table 6: Output data format of the SRC4193 depending on the OFMT[1:0] bit settings.*
+
+![Table 7](Table 7.png)
+
+*Table 7: Input data format of the SRC4193 depending on the IFMT[2:0] bit settings.*
+
 
 Using the AL[7:0] and AR[7:0] bits, the attenuation is set according to the following formula:
 
@@ -287,37 +298,31 @@ Output attenuation (dB) = (–N × 0.5)
 where N is the value stored in AL[7:0] or AR[7:0].
 Thus, the attenuation can be adjusted in the range from 0 dB to –127.5 dB.
 
+![Table 8](Table 8.png)
 
-<div style="text-align:center">
-  <img width="650" height="250" alt="Table 8" src="https://github.com/user-attachments/assets/4c09212e-495f-456f-91e8-513a990b80cc" />
-  <p><em>Table 8: Relationship between the output signal fs [kHz] of the SRC4193 and the RCKI frequency [kHz].</em></p>
-</div>
+*Table 8: Relationship between the output signal fs [kHz] of the SRC4193 and the RCKI frequency [kHz].*
 
 **Table 8 is very important because it summarizes all operating modes of the resampler.**
 
 **All possible frequencies generated by the PLL1708 (SCKO2) are shown in the table as RCKI. From the table, it is clear that the best solution is to configure the resampler so that the output frequency falls within the range 32 kHz – 192 kHz (fs = RCKI / 128).**
 
 
-<div style="text-align:center">
-  <img width="480" height="351" alt="Figure 9" src="https://github.com/user-attachments/assets/6f6f5073-d25f-45d7-8ccc-4a998b785f6e" />
-  <p><em>Figure 9: LRCK signal before the resampler (yellow) and at the output (blue).</em></p>
-</div>
+![Figure 11](Figure 11.png)
+
+*Figure 11: LRCK signal before the resampler (yellow) and at the output (blue).*
+
+![Figure 12](Figure 12.png)
+
+*Figure 12: LRCK (yellow) and DATA signals at the input of the resampler.*
+
+![Figure 13](Figure 13.png)
+
+*Figure 13: LRCK (yellow) and DATA signals at the output of the resampler.*
 
 
-<div style="text-align:center">
-  <img width="480" height="351" alt="Figure 10" src="https://github.com/user-attachments/assets/bbb70008-3926-467f-a243-f5e6936d76f9" />
-  <p><em>Figure 10: LRCK (yellow) and DATA signals at the input of the resampler.</em></p>
-</div>
+Figures 11–13 show the signals on the I2S buses. The input signal to the resampler has parameters: 16 bit / 44.1 kHz, while the output PCM signal is 24 bit / 192 kHz.
 
-
-<div style="text-align:center">
-  <img width="480" height="351" alt="Figure 11" src="https://github.com/user-attachments/assets/1be8d4d2-d720-4d71-9933-86c9ecd88f54" />
-  <p><em>Figure 11: LRCK (yellow) and DATA signals at the output of the resampler.</em></p>
-</div>
-
-Figures 9–11 show the signals on the I2S buses. The input signal to the resampler has parameters: 16 bit / 44.1 kHz, while the output PCM signal is 24 bit / 192 kHz.
-
-In Figure 9, a comparison of the two LRCK signals is shown — before the resampler (yellow) and after the resampler. In Figures 10 and 11, the blue signals represent the data word length — it can be seen that the input signal (Figure 10) is 16 bits, while the output signal (Figure 11) is 24 bits.
+In Figure 11, a comparison of the two LRCK signals is shown — before the resampler (yellow) and after the resampler. In Figures 12 and 13, the blue signals represent the data word length — it can be seen that the input signal (Figure 12) is 16 bits, while the output signal (Figure 13) is 24 bits.
 
 ---
 ## Digital-to-Analog Converter (DAC)
@@ -330,57 +335,55 @@ The ZEROL and ZEROR lines are used for zero detection in both channels. These li
 
 The DAC has four current outputs, two for the right channel and two for the left channel. The maximum current output for each output is 7.8 mA p-p.
 
-<div style="text-align:center">
-  <img width="1048" height="410" alt="Figure 12" src="https://github.com/user-attachments/assets/3911dc3a-5bdf-4527-8d55-e92682b4bca0" />
-  <p><em>Figure 12: Electrical connection diagram of the DAC.</em></p>
-</div>
+![Figure 14](Figure 14.png)
+
+Figure 14: Electrical connection diagram of the DAC.
 
 ---
 ## Current-to-Voltage Converter and Headphone Amplifier
 
-The schematic of the current-to-voltage converter and headphone amplifier shown in Figure 13 was taken from the datasheet of the TPA6120. The only modifications I made were replacing the OPA4134 with four OPA134 operational amplifiers and increasing the voltage from ±5 V to ±12 V.
+The schematic of the current-to-voltage converter and headphone amplifier shown in Figure 15 was taken from the datasheet of the TPA6120. The only modifications I made were replacing the OPA4134 with four OPA134 operational amplifiers and increasing the voltage from ±5 V to ±12 V.
 
 Replacing the amplifiers made PCB trace routing easier, while the voltage change was necessary for the proper operation of the board — there is an error in the datasheet that prevented the board from playing music correctly.
 
-<div style="text-align:center">
-  <img width="563" height="897" alt="Figure 13" src="https://github.com/user-attachments/assets/50b24969-aa79-4ba8-a253-04b3cd1f29bf" />
-  <p><em>Figure 13: Electrical connection diagram of the current-to-voltage converter and headphone amplifier.</em></p>
-</div>
+![Figure 15](Figure 15.png)
 
-<div style="text-align:center">
-  <img width="480" height="351" alt="Figure 14" src="https://github.com/user-attachments/assets/13422bd5-5a08-4830-a8c9-33f55e91ef79" />
-  <p><em>Figure 14: Signal at the output of the current-to-voltage converter when a 1 kHz sine wave is played.</em></p>
-</div>
+*Figure 15: Electrical connection diagram of the current-to-voltage converter and headphone amplifier.*
+
+![Figure 16](Figure 16.png)
+
+*Figure 16: Signal at the output of the current-to-voltage converter when a 1 kHz sine wave is played.*
+
 
 As mentioned earlier, the maximum current from each output is 7.8 mA. Multiplying this value by the resistance in the current-to-voltage converter (1 kΩ) gives the maximum output voltage, which is 7.8 V.
 
-As can be seen in Figure 14, the "maximum" output voltage is –7.68 V, which is approximately equal to –7.8 V. It is clear that with a ±5 V symmetric power supply, the output signal would be severely distorted.
+As can be seen in Figure 16, the "maximum" output voltage is –7.68 V, which is approximately equal to –7.8 V. It is clear that with a ±5 V symmetric power supply, the output signal would be severely distorted.
 
 The 2.7 nF capacitor together with the 1 kΩ resistor forms a low-pass filter with a cutoff frequency of 59 kHz.
 
-<div style="text-align:center">
-  <img width="480" height="351" alt="Figure 15" src="https://github.com/user-attachments/assets/3a87f966-0d6c-4bb7-a41c-3c64277e739b" />
-  <p><em>Figure 15: Left channel at the output of the current-to-voltage converters.</em></p>
-</div>
+![Figure 17](Figure 17.png)
+
+*Figure 17: Left channel at the output of the current-to-voltage converters.*
+
 
 The popular TPA6120A2 chip was used as the headphone amplifier. The device was used as a differential amplifier, with all resistors having the same value (1 kΩ). The output voltage depends on the input voltages according to the following formulas:
 
-<div style="text-align:center">
-  <img width="201" height="21" alt="Left channel formula" src="https://github.com/user-attachments/assets/88a80973-0e63-43c7-a782-fb7f877bef03" />
-  <p><em>Left channel</em></p>
-</div>
+![Figure 17 a](Figure 17 a.png)
+![Figure 17 b](Figure 17 b.png)
 
-<div style="text-align:center">
-  <img width="480" height="351" alt="Figure 16" src="https://github.com/user-attachments/assets/25a91586-2a46-4b82-bc1c-6bca919bffbe" />
-  <p><em>Figure 16: Signals at the output of the sound card.</em></p>
-</div>
+
+![Figure 18](Figure 18.png)
+
+*Figure 18: Signals at the output of the sound card.*
+
+Figure 18 presents the audio signals at the sound card output when the played sound is a sine function with a frequency of 1 kHz.
 
 ---
 ## Processor
-<div style="text-align:center">
-  <img width="763" height="487" alt="Figure 17" src="https://github.com/user-attachments/assets/ca996fbb-6f88-4752-ad3a-ca3a327076b2" />
-  <p><em>Figure 17: Electrical connection diagram of the processor controlling the card</em></p>
-</div>
+
+![Figure 19](Figure 19.png)
+
+*Figure 19: Electrical connection diagram of the processor controlling the card*
 
 The board is controlled by a Cortex-M3 STM32F103CBT6 processor. This chip has the following features:
 
@@ -409,26 +412,25 @@ For powering the digital section, TPS79333 regulators were selected. This device
 
 The LC filter at the regulator output is used to remove noise that the regulator itself could not eliminate. In this design, a separate regulator was used for each digital device — a total of 11 units.
 
-Figure 19 shows the filter used for all power inputs of each device in the digital section. The ferrite bead is intended to suppress frequencies above 100 MHz, preventing relatively long PCB traces from radiating interference.
-
-<div style="text-align:center">
-  <img width="536" height="221" alt="Figure 18" src="https://github.com/user-attachments/assets/71be19f3-1a79-41e6-b152-921ad5b50825" />
-  <p><em>Figure 18: Electrical connection diagram of the TPS79333 voltage regulator and LC filter.</em></p>
-</div>
+Figure 21 shows the filter used for all power inputs of each device in the digital section. The ferrite bead is intended to suppress frequencies above 100 MHz, preventing relatively long PCB traces from radiating interference.
 
 
-<div style="text-align:center">
-  <img width="211" height="181" alt="Figure 19" src="https://github.com/user-attachments/assets/d580f016-034b-4e49-aa5f-6522160911ed" />
-  <p><em>Figure 19: Filter used for each power input in the digital section.</em></p>
-</div>
+![Figure 20](Figure 20.png)
+
+*Figure 20: Electrical connection diagram of the TPS79333 voltage regulator and LC filter.*
+
+![Figure 21](Figure 21.png)
+
+*Figure 21: Filter used for each power input in the digital section.*
+
 
 **Analog Section Power Supply**
 
 The symmetric power supply for the analog section should be within the range ±13.35 V. The lower limit of this range is determined by the minimum required dropout voltage of the regulators (1 V), while the upper limit is set by the maximum voltage rating of the capacitors.
 
-Figure 20 shows the input power filter. Common-mode chokes and low-ESR capacitors were used for this purpose.
+Figure 22 shows the input power filter. Common-mode chokes and low-ESR capacitors were used for this purpose.
 
-Figure 21 shows a pair of regulators used to power the current-to-voltage converters; a second identical pair is used to power the headphone amplifier.
+Figure 23 shows a pair of regulators used to power the current-to-voltage converters; a second identical pair is used to power the headphone amplifier.
 
 The TPS7A47 regulator features an input voltage range from +3 V to +36 V, a 1 A output current, and ultra-low noise of only 4.17 µV RMS in the 10 Hz–100 kHz band.
 
@@ -436,15 +438,14 @@ The TPS7A3301 regulator features an input voltage range from –3 V to –36�
 
 Additionally, decoupling capacitors were used for each operational amplifier, consisting of 10 µF Panasonic FC electrolytic capacitors and 100 nF Wima polypropylene capacitors.
 
-<div style="text-align:center">
-  <img width="537" height="324" alt="Figure 20" src="https://github.com/user-attachments/assets/f21a407a-c35f-4feb-9083-64beb63f323b" />
-  <p><em>Figure 20: Input power filter for the analog section.</em></p>
-</div>
+![Figure 22](Figure 22.png)
 
-<div style="text-align:center">
-  <img width="604" height="629" alt="Figure 21" src="https://github.com/user-attachments/assets/fd72f96b-87b3-486a-b93f-65bdd15be262" />
-  <p><em>Figure 21: Electrical connection diagram of the regulators in the analog section.</em></p>
-</div>
+*Figure 22: Input power filter for the analog section.*
+
+
+![Figure 23](Figure 23.png)
+
+*Figure 23: Electrical connection diagram of the regulators in the analog section.*
 
 ---
 ## Sound Card Design
@@ -453,11 +454,13 @@ Since the sound card was intended to have very high noise performance (S/N > 110
 
 The PCB design process began by placing the most critical components, followed by routing the traces between them. Next, the power supply circuits were positioned and the power traces were distributed. The inner layers contain power and ground planes. The digital and analog grounds are routed so that they meet at only one point — beneath the DAC.
 
-<div style="text-align:center">
-  <img width="800" height="600" alt="Figure 22" src="https://github.com/user-attachments/assets/116f2d29-4ddf-461c-8dc1-fad18a1d85de" />
-  <img width="800" height="600" alt="Figure 22" src="https://github.com/user-attachments/assets/fc1c5692-bc1f-43e1-b0dd-adba04425702" />
-  <p><em>Figure 22: Sound card built for the purposes of the master's thesis.</em></p>
-</div>
+
+![Figure 24a](Figure 24a.png)
+![Figure 24b](Figure 24b.png)
+
+*Figure 24: Sound card built for the purposes of the master's thesis.*
+
+
 
 ---
 ## Sound Card Control Program
@@ -496,10 +499,10 @@ Example commands:
 
 - *SET_VOL:-30# — sets the attenuation to –30 dB
 
-<div style="text-align:center">
-  <img width="170" height="600" alt="IMG_0543" src="https://github.com/user-attachments/assets/6dd97b03-4a8e-4ae0-93d8-1c9f4afdee02" />
-  <p><em>Figure 23: Block diagram of the program controlling the sound card.</em></p>
-</div>
+![Figure 25](Figure 25.png)
+
+*Figure 25: Block diagram of the program controlling the sound card.*
+
 
 ---
 ## Impact of power supply elements on the sound card noise
@@ -518,15 +521,13 @@ Tables 9 and 10 show the S/N and THD+N values depending on different resampler o
 
 When the card was powered by two sources, the S/N ratio (for a resampler frequency of 64 kHz) increased by only 1 dB. Additionally, for a frequency of 96 kHz, the THD+N parameter decreased by 1 dB. Based on these tables, it can be concluded that using two transformers is not particularly meaningful, as their impact on the designed sound card is minimal and completely inaudible.
 
-<div style="text-align:center">
-  <img width="535" height="138" alt="Table 9" src="https://github.com/user-attachments/assets/c1f3b8e5-c799-4597-98b6-c4a269c93feb" />
-  <p><em>Table 9: Sound card parameters when the digital and analog sections were powered by two separate transformers.</em></p>
-</div>
+![Table 9](Table 9.png)
 
-<div style="text-align:center">
-  <img width="535" height="138" alt="Table 10" src="https://github.com/user-attachments/assets/13aa7b23-6640-4cff-b72a-b4c89ce4bcca" />
-  <p><em>Table 10: Sound card parameters when the digital and analog sections were powered by a single transformer.</em></p>
-</div>
+*Table 9: Sound card parameters when the digital and analog sections were powered by two separate transformers.*
+
+![Table 10](Table 10.png)
+
+*Table 10: Sound card parameters when the digital and analog sections were powered by a single transformer.*
 
 
 **Voltage regulators**
@@ -535,29 +536,28 @@ Table 11 shows the noise levels when the current-to-voltage converter and headph
 
 Comparing Tables 10 and 11 (excluding the values marked with question marks), it can be concluded that using ultra-low-noise regulators in this case is unnecessary, as the noise parameters remain almost identical while the cost increases drastically.
 
-<div style="text-align:center">
-  <img width="329" height="121" alt="obraz" src="https://github.com/user-attachments/assets/ea8f8895-84c0-4cf4-b3d6-328b993fbd34" />
-  <p><em>Table 11: Sound card parameters when the power supply was regulated using standard regulators: LM317 and LM337.</em></p>
-</div>
+![Table 11](Table 11.png)
+
+*Table 11: Sound card parameters when the power supply was regulated using standard regulators: LM317 and LM337.*
+
 
 ---
 ## Frequency response measurement
 
-Although the frequency response measurement is not considered a noise parameter, it is still worthwhile to perform it to verify whether the card is operating correctly. Figure 24 shows the frequency response. It can be observed that in the 20 Hz–20 kHz band there is a significant voltage drop (0.7–0.8 dBu).
+Although the frequency response measurement is not considered a noise parameter, it is still worthwhile to perform it to verify whether the card is operating correctly. Figure 26 shows the frequency response. It can be observed that in the 20 Hz–20 kHz band there is a significant voltage drop (0.7–0.8 dBu).
 
-It turned out that the recommended capacitor value (2.7 nF) for the current-to-voltage converter was not available, and an alternative value (3.3 nF) was ordered. The figure presents the frequency response measurement after the capacitors were removed from the current-to-voltage converter, confirming that the problem was caused by an incorrectly selected component. In this case, the amplitude change in the 20 Hz–20 kHz band was only 0.1 dBu.
+It turned out that the recommended capacitor value (2.7 nF) for the current-to-voltage converter was not available, and an alternative value (3.3 nF) was ordered. Figure 27 presents the frequency response measurement after the capacitors were removed from the current-to-voltage converter, confirming that the problem was caused by an incorrectly selected component. In this case, the amplitude change in the 20 Hz–20 kHz band was only 0.1 dBu.
 
 After analyzing the measurements and simulations in PSPICE, it was decided to use a capacitor with a value of 2.2 nF.
 
-<div style="text-align:center">
-  <img width="1008" height="468" alt="Figure 24" src="https://github.com/user-attachments/assets/657a510c-6f42-4954-a011-c71617d271fc" />
-  <p><em>Figure 24: Frequency response of the sound card with 3.3 nF capacitors used in the current-to-voltage converter.</em></p>
-</div>
 
-<div style="text-align:center">
-  <img width="1084" height="439" alt="Figure 25" src="https://github.com/user-attachments/assets/490a3e02-22fe-4cb9-aebb-8c716f0992ce" />
-  <p><em>Figure 25: Frequency response of the sound card with the capacitors removed from the current-to-voltage converter.</em></p>
-</div>
+![Figure 26](Figure 26.png)
+
+*Figure 26: Frequency response of the sound card with 3.3 nF capacitors used in the current-to-voltage converter.*
+
+![Figure 27](Figure 27.png)
+
+*Figure 27: Frequency response of the sound card with the capacitors removed from the current-to-voltage converter.*
 
 ---
 # Conclusion
