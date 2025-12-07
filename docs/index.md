@@ -5,6 +5,10 @@ It was translated into English in 2025, as there is still considerable interest 
 This work is distributed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). Please include the author’s name, Sylwester Kominek (Wroclaw), if you use or modify this work (including text, analysis, and schematics).
 
 ---
+
+![Figure 0.JPG](Figure 0.JPG)
+
+---
 # Introduction
 
 Nowadays, there is a strong tendency to minimize the time required to design electronic devices, because the company that brings its product to market first is able to achieve significant revenue, which decreases as competition appears. For this reason, companies strive to optimize their products so that they are more energy-efficient, more powerful, and offer more features. All these efforts aim to attract as many users as possible and thus maximize profits.
@@ -81,7 +85,7 @@ The clock generator provides low-jitter square-wave signals for both the resampl
 
 ![Figure 1b](Figure 1b.png)
 
-*Figure 1a: Block diagram of the designed sound card*
+*Figure 1b: Block diagram of the designed sound card*
 
 
 Before selecting the integrated circuits, I reviewed several articles on the construction of:
@@ -499,7 +503,7 @@ Example commands:
 
 - *SET_VOL:-30# — sets the attenuation to –30 dB
 
-![Figure 25](Figure 25.png)
+![Figure 25](Figure 25.jpeg)
 
 *Figure 25: Block diagram of the program controlling the sound card.*
 
