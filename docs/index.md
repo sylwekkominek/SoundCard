@@ -572,3 +572,25 @@ An analysis of the measurement results shows that the designed sound card offers
 
 Despite the tests carried out, the device would need to undergo further measurements to become competitive with commercial audio interfaces. In particular, it would be necessary to evaluate the influence of the voltage regulators and the applied LC filters in the digital section on the overall noise performance—tests which were not performed due to time limitations. A possible next step could also involve reducing the size of the enclosure, and consequently the PCB dimensions.
 
+---
+# PCB Layout
+
+![Figure 28](Figure 28.png)
+
+*Figure 28: 4-layer PCB Layout: Top + Inner1 + Inner2 + Bottom*
+
+![Figure 29](Figure 29.png)
+
+*Figure 29: Top Layer*
+
+![Figure 30](Figure 30.png)
+
+*Figure 30: Inner Layer 1*
+
+![Figure 31](Figure 31.png)
+
+*Figure 31: Inner Layer 2*
+
+![Figure 32](Figure 32.png)
+
+*Figure 32: Bottom Layer*
