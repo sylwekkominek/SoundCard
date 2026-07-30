@@ -12,3 +12,13 @@ This work is distributed under the Creative Commons Attribution 4.0 Internationa
 
 The content of this repository is also available on **GitHub Pages**:  
 https://sylwekkominek.github.io/SoundCard/
+
+---
+
+### Video Showcase
+**Check out the project overview video on YouTube:**
+
+
+[![High-Quality Sound Card Project Video](https://img.youtube.com/vi/BVz0i-KDFCs/maxresdefault.jpg)](https://www.youtube.com/watch?v=BVz0i-KDFCs)
+
+---
